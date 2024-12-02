@@ -68,6 +68,18 @@ fn is_safe(report: &[i32]) -> bool {
     is_safe
 }
 
+fn tolerance(report: &Vec<i32>) -> bool {
+    let mut safe = false;
+    for (index, _value) in report.iter().enumerate() {
+        if !safe {
+            let mut temp_report = report.clone();
+            temp_report.remove(index);
+            safe = is_safe(&temp_report);
+        }
+    }
+    safe
+}
+
 fn main() -> std::io::Result<()> {
     let mut file = File::open("input")?;
     let mut contents = String::new();
@@ -75,7 +87,8 @@ fn main() -> std::io::Result<()> {
     let mut safety_list: Vec<bool> = Vec::new();
     for line in contents.lines() {
         let report = build_report(line);
-        let issafe = is_safe(&report);
+        let issafe = tolerance(&report);
+        println!("Report: {report:?}, safe: {issafe}");
         safety_list.push(issafe);
     }
 
