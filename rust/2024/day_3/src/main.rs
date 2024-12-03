@@ -2,9 +2,6 @@ use regex::Regex;
 use std::fs::File;
 use std::io::prelude::*;
 
-static EXAMPLE1: &str = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-static EXAMPLE2: &str = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
-
 #[derive(Debug)]
 enum State {
     Do,
@@ -64,6 +61,7 @@ fn detect_commands(text: &str) -> Vec<String> {
                     for matched_phrase in exp.find_iter(text) {
                         if command.index == matched_phrase.start() {
                             command_list.push(command.contents.clone().unwrap());
+                            break;
                         }
                     }
                 }
@@ -93,10 +91,8 @@ fn main() {
     //for command in detect_commands(EXAMPLE2) {
     //    total += multiply(&command);
     //}
-    for line in contents.lines() {
-        for command in detect_commands(line) {
-            total += multiply(&command);
-        }
+    for command in detect_commands(&contents) {
+        total += multiply(&command);
     }
     println!("{total}");
 }
