@@ -13,11 +13,11 @@ struct Puzzle {
 impl fmt::Display for Puzzle {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut puzzle_string: String = String::from("");
-        for x in 0..self.length {
-            for y in 0..self.height {
+        for y in 0..self.length {
+            for x in 0..self.height {
                 let character = self.grid.get(&(x, y)).unwrap().to_owned();
                 puzzle_string.push(character);
-                if y == self.length - 1 {
+                if x == self.length - 1 {
                     puzzle_string.push('\n');
                 }
             }
@@ -62,9 +62,9 @@ fn parse(line: &str) -> usize {
 
 fn make_vertical_list(puzzle: &Puzzle) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
-    for x in 0..=(puzzle.length - 1) {
+    for x in 0..puzzle.length {
         let mut line: String = String::new();
-        for y in 0..=(puzzle.height - 1) {
+        for y in 0..puzzle.height {
             line.push(puzzle.grid.get(&(x, y)).unwrap().to_owned());
         }
         output.push(line);
@@ -74,9 +74,9 @@ fn make_vertical_list(puzzle: &Puzzle) -> Vec<String> {
 
 fn make_horizontal_list(puzzle: &Puzzle) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
-    for y in 0..=(puzzle.height - 1) {
+    for y in 0..puzzle.height {
         let mut line: String = String::new();
-        for x in 0..=(puzzle.length - 1) {
+        for x in 0..puzzle.length {
             line.push(puzzle.grid.get(&(x, y)).unwrap().to_owned())
         }
         output.push(line);
@@ -85,36 +85,76 @@ fn make_horizontal_list(puzzle: &Puzzle) -> Vec<String> {
     output
 }
 
+// - | 0 1 2 3 4 5 6 7 8 9
+// -----------------------
+// 0 | . . . . X X M A S .
+// 1 | . S A M X M S . . .
+// 2 | . . . S . . A . . .
+// 3 | . . A . A . M S . X
+// 4 | X M A S A M X . M M
+// 5 | X . . . . . X A . A
+// 6 | S . S . S . S . S S
+// 7 | . A . A . A . A . A
+// 8 | . . M . M . M . M M
+// 9 | . X . X . X M A S X
+
 fn make_diagonal_list(puzzle: &Puzzle) -> Vec<String> {
     let mut output: Vec<String> = Vec::new();
-    for _ in 0..=(puzzle.height - 1) {
-        let mut line: String = String::new();
-        for x in 0..=(puzzle.length - 1) {
-            let mut i = x + 1;
-            while i < puzzle.length {
-                line.push(puzzle.grid.get(&(x, i)).unwrap().to_owned());
-                i += 1;
-            }
+
+    let mut diagonals: Vec<Vec<(usize, usize)>> = Vec::new();
+    let mut current_diagonal: Vec<(usize, usize)> = Vec::new();
+    for column_start in 0..puzzle.length {
+        for i in 0..(puzzle.length - column_start) {
+            current_diagonal.push((i, i + column_start));
         }
-        output.push(line);
+        diagonals.push(current_diagonal);
+        current_diagonal = Vec::new();
     }
 
-    for _ in puzzle.height..=0 {
-        let mut line: String = String::new();
-        for x in puzzle.length..=0 {
-            let mut i = x - 1;
-            while i > 0 {
-                line.push(puzzle.grid.get(&(x, i)).unwrap().to_owned());
-                i -= 1;
-            }
+    for row_start in 1..puzzle.height {
+        for i in 0..(puzzle.height - row_start) {
+            current_diagonal.push((i, i + row_start));
         }
-        output.push(line);
+        diagonals.push(current_diagonal);
+        current_diagonal = Vec::new();
     }
 
-    println!("{:?}", output);
+    let mut left_diagonals: Vec<Vec<(usize, usize)>> = Vec::new();
+    let mut current_left_diagonal: Vec<(usize, usize)> = Vec::new();
+    for column_start in (0..puzzle.length).rev() {
+        for i in (0..(puzzle.length - column_start)).rev() {
+            current_left_diagonal.push((i, i + column_start));
+        }
+        left_diagonals.push(current_left_diagonal);
+        current_left_diagonal = Vec::new();
+    }
+
+    for row_start in (1..puzzle.height).rev() {
+        for i in (0..(puzzle.height - row_start)).rev() {
+            current_left_diagonal.push((i, i + row_start));
+        }
+        left_diagonals.push(current_left_diagonal);
+        current_left_diagonal = Vec::new();
+    }
+
+    let mut line: String = String::new();
+    for diagonal in diagonals {
+        for coordinate in diagonal {
+            line.push(puzzle.grid.get(&coordinate).unwrap().to_owned());
+        }
+        output.push(line);
+        line = String::new();
+    }
+    for diagonal in left_diagonals {
+        for coordinate in diagonal {
+            line.push(puzzle.grid.get(&coordinate).unwrap().to_owned());
+        }
+        output.push(line);
+        line = String::new();
+    }
+
     output
 }
-
 fn find_matches(puzzle: Puzzle) -> usize {
     let horizontals = make_horizontal_list(&puzzle);
     let verticals = make_vertical_list(&puzzle);
@@ -141,12 +181,11 @@ fn find_matches(puzzle: Puzzle) -> usize {
 }
 
 fn main() {
-    let mut file = File::open("example").unwrap();
+    let mut file = File::open("input").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
-
     let puzzle = create_puzzle(contents);
-
+    println!("{puzzle}");
     let mut count = 0;
     count += find_matches(puzzle);
 
