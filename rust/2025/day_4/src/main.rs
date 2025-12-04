@@ -1,4 +1,4 @@
-use std::{error::Error, fmt, io::Read, ops::IndexMut};
+use std::{io::Read, ops::IndexMut};
 
 const EXAMPLE: &str = "..@@.@@@@.
 @@@.@.@.@@
@@ -10,17 +10,6 @@ const EXAMPLE: &str = "..@@.@@@@.
 @.@@@.@@@@
 .@@@@@@@@.
 @.@.@@@.@.";
-
-#[derive(Debug)]
-struct FalseError;
-
-impl Error for FalseError {}
-
-impl fmt::Display for FalseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "value is false")
-    }
-}
 
 #[derive(Default, Debug, Clone)]
 struct Row {
